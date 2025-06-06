@@ -4,24 +4,22 @@ FROM 010438506924.dkr.ecr.ap-south-1.amazonaws.com/base-image:latest
 # Set working directory
 WORKDIR /app
 
-# Create a system user for Nginx (optional but clean)
-RUN useradd -r nginx \
-    && rm -rf /var/lib/apt/lists/*
+# Only create nginx user if it doesn't exist
+RUN id -u nginx 2>/dev/null || useradd -r nginx && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files and install Node packages
 COPY package*.json ./
 RUN npm install
 
-# Copy application files and .env
+# Copy app source and config files
 COPY . .
 
-# Copy Nginx configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Set port and expose it
+# Set environment and expose port
 ENV PORT=3000
 EXPOSE 80
 
-# Start both Node.js and Nginx — wait ensures errors stop container
+# Start Node.js app and Nginx
 CMD ["sh", "-c", "node index.js & wait $! && nginx -g 'daemon off;'"]
