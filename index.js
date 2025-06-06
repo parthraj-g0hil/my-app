@@ -1,30 +1,31 @@
-// Load .env variables
-require('dotenv').config();
-
 const express = require('express');
 const mysql = require('mysql2');
 const app = express();
 
+// Use environment variables directly from ECS
 const PORT = process.env.PORT || 3000;
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME;
 
-// Create MySQL connection using .env values
+// Create DB connection
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  host: DB_HOST,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME
 });
 
-// Try to connect to MySQL
 db.connect(err => {
   if (err) {
     console.error('❌ MySQL connection error:', err);
-    process.exit(1); // Exit if DB fails to connect
+    process.exit(1);
   }
   console.log('✅ Connected to MySQL');
 });
 
-// Main route
+// Root route
 app.get('/', (req, res) => {
   db.query('SELECT NOW() AS time', (err, results) => {
     if (err) return res.status(500).send('DB query failed');
@@ -37,7 +38,7 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Start the server
+// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Node.js running on port ${PORT}`);
 });
