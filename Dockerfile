@@ -1,24 +1,23 @@
-FROM node:18 as node-build
+# Dockerfile
+
+FROM 010438506924.dkr.ecr.ap-south-1.amazonaws.com/base-image:latest
 
 WORKDIR /app
+
+# Install Node dependencies
 COPY package*.json ./
 RUN npm install
+
+# Copy app source
 COPY . .
 
-FROM node:18
-
-WORKDIR /app
-COPY --from=node-build /app /app
-
-RUN apt-get update && apt-get install -y nginx \
-    && useradd -r nginx \
-    && rm -rf /var/lib/apt/lists/*
-
-# Replace proper nginx configs
+# Copy Nginx configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# Set port and expose it
 ENV PORT=3000
+EXPOSE 80
 
+# Start app and Nginx
 CMD bash -c "node index.js & nginx -g 'daemon off;'"
